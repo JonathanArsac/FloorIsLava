@@ -4,12 +4,14 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import androidx.annotation.NonNull;
+import helloandroid.ut3.floorislava.R;
 import helloandroid.ut3.floorislava.picture.processing.PictureProcessor;
 import helloandroid.ut3.floorislava.picture.processing.PictureProcessorListener;
 
@@ -19,6 +21,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Pic
     private SensorManager sensorManager;
 
     private Ball ball;
+    private Timer timer;
     private AcceloSpeedController ballSpeedController;
 
     private PictureProcessor pictureProcessor;
@@ -36,6 +39,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Pic
         pictureProcessor.setListener(this);
         setFocusable(true);
 
+        timer = new Timer();
         ball = new Ball(Color.BLUE);
         ballSpeedController = new AcceloSpeedController(getContext(), ball);
     }
@@ -69,6 +73,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Pic
         threadDraw.start();
         threadUpdate.start();
         pictureProcessor.start();
+        ball.setX(getWidth()/2);
+        ball.setY(getHeight()/2);
     }
 
     @Override
@@ -103,14 +109,34 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Pic
             if (picture != null) {
                 canvas.drawBitmap(getScaledPicture(), 0, 0, null);
             }
+            timer.draw(canvas, getHeight());
             ball.draw(canvas);
         }
     }
 
     public void update() {
         ball.update(getWidth(), getHeight());
+        timer.update();
+        if (isBallInLava()) {
+            System.out.println("The floor is lava");
+        }
     }
 
+    private boolean isBallInLava() {
+        Rect ballHitbox = ball.getHitbox();
+        Bitmap pixelIntersectingBall = Bitmap.createBitmap(getScaledPicture(), ballHitbox.left, ballHitbox.top, ballHitbox.width(), ballHitbox.height());
+        Rect rectBitmap = new Rect(0, 0, pixelIntersectingBall.getWidth(), pixelIntersectingBall.getHeight());
+
+        for (int x = 0; x < pixelIntersectingBall.getWidth(); x++) {
+            for (int y = 0; y < pixelIntersectingBall.getHeight(); y++) {
+                int pixel = pixelIntersectingBall.getPixel(x, y);
+                if (pixel == Color.RED) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     private void registerSpeedController() {
         Sensor accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);

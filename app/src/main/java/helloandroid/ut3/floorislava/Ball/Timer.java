@@ -1,4 +1,4 @@
-package helloandroid.ut3.floorislava.timer;
+package helloandroid.ut3.floorislava.Ball;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -12,12 +12,8 @@ public class Timer {
     private Date startDate;
     String sDate = "0s";
 
-    public Timer(Point displaySize) {
-        System.out.println("bonsoir: " + displaySize);
+    public Timer() {
         startDate = new Date();
-    }
-
-    public void setDisplaySize() {
     }
 
     public String getsDate() {
@@ -28,7 +24,6 @@ public class Timer {
         sDate="";
         Date currentDate = new Date();
         long diff = currentDate.getTime() - startDate.getTime();
-        System.out.println(diff+"ddd");
         long seconds = diff / 1000;
         long minutes = seconds / 60;
         long hours = minutes / 60;
@@ -48,7 +43,7 @@ public class Timer {
         }
     }
 
-    public void draw(Canvas canvas, int width, int height) {
+    public void draw(Canvas canvas, int height) {
         Paint txtPaint = new Paint();
         txtPaint.setColor(Color.BLACK);
         txtPaint.setTextSize(height * 0.05f);
