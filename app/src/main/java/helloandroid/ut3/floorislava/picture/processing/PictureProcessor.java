@@ -1,54 +1,44 @@
 package helloandroid.ut3.floorislava.picture.processing;
 
-import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
-import android.util.Log;
-
 import android.os.Handler;
+import android.view.SurfaceHolder;
 
-public class PictureProcessor implements Runnable {
+public class PictureProcessor extends Thread {
 
-   private static final int LAVA_THRESHOLD = 300;
-   private Bitmap picture;
-   private Bitmap grayPicture;
-   private PictureProcessorListener listener;
-   private boolean running = false;
-   private int delay;
-   private Handler handler;
+   private static final int LAVA_THRESHOLD = 100;
+   private static final int PROCESSING_DELAY = 500;
+   private final Bitmap picture;
+   private final Bitmap grayPicture;
    private int nbProcess;
+   private boolean running = false;
+   private final Handler handler = new Handler();
+   private PictureProcessorListener listener;
 
-   public PictureProcessor(Bitmap src, Handler handler) {
-      picture = src;
-      grayPicture = toGrayscale(src);
-      this.handler = handler;
+   public PictureProcessor(Bitmap picture) {
+      this.picture = picture;
+      grayPicture = toGrayscale(picture);
    }
 
    public void setRunning(boolean running) {
       this.running = running;
    }
 
-   public void setDelay(int delay) {
-      this.delay = delay;
-   }
-
-   public int getDelay() {
-      return delay;
+   public void setListener(PictureProcessorListener listener) {
+      this.listener = listener;
    }
 
    @Override
    public void run() {
-      Bitmap img = processImg();
-      listener.onProcessingUpdate(img);
+      listener.onProcessingUpdate(processImg());
       if (running) {
-         handler.postDelayed(this, getDelay());
+         handler.postDelayed(this, PROCESSING_DELAY);
       }
-      System.out.println("Image Processed.");
    }
 
    private Bitmap toGrayscale(Bitmap bmpOriginal)
@@ -72,8 +62,7 @@ public class PictureProcessor implements Runnable {
       for (int x = 0; x < picture.getWidth(); x++) {
          for (int y = 0; y < picture.getHeight(); y++) {
             int pixel = grayPicture.getPixel(x, y);
-            int A,R,G,B;
-            A = Color.alpha(pixel);
+            int R,G,B;
             R = Color.red(pixel);
             G = Color.green(pixel);
             B = Color.blue(pixel);
@@ -88,10 +77,7 @@ public class PictureProcessor implements Runnable {
    }
 
    private int calculateLavaThreshold() {
-      return LAVA_THRESHOLD + (nbProcess*10);
+      return LAVA_THRESHOLD + (nbProcess*5);
    }
 
-   public void setListener(PictureProcessorListener listener) {
-      this.listener = listener;
-   }
 }

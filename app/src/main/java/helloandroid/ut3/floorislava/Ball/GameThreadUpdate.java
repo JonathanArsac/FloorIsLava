@@ -8,7 +8,6 @@ public class GameThreadUpdate extends Thread {
     private GameView gameView;
     private Handler handler;
     private boolean running;
-    private Canvas canvas;
     private final SurfaceHolder surfaceHolder;
 
 

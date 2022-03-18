@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">FloorIsLava</string>
+    <string name="valider_photo">Valider photo</string>
+    <string name="prendre_photo">Prendre photo</string>
 </resources>

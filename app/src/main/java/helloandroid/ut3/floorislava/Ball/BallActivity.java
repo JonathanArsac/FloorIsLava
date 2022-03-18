@@ -1,21 +1,19 @@
 package helloandroid.ut3.floorislava.Ball;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
-import helloandroid.ut3.floorislava.R;
+import helloandroid.ut3.floorislava.picture.CameraActivity;
 
 public class  BallActivity extends Activity implements View.OnTouchListener, SensorEventListener {
     private GameView gameView;
@@ -29,7 +27,10 @@ public class  BallActivity extends Activity implements View.OnTouchListener, Sen
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
         sm = (SensorManager) getSystemService(SENSOR_SERVICE);
-        gameView = new GameView(this);
+
+        Bitmap picture = getIntent().getParcelableExtra(CameraActivity.PHOTO_EXTRA_KEY);
+        gameView = new GameView(this, picture);
+        gameView.setPicture(picture);
         gameView.setOnTouchListener(this);
 
         setContentView(gameView);

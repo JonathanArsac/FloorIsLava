@@ -31,36 +31,46 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Pic
 
     private PictureProcessor pictureProcessor;
 
-    private Bitmap img;
+    private Bitmap picture;
 
 
-    public GameView(Context context) {
+    public GameView(Context context, Bitmap picture) {
         super(context);
+        setPicture(picture.copy(picture.getConfig(), true));
         getHolder().addCallback(this);
         threadDraw = new GameThreadDraw(getHolder(), this);
         threadUpdate = new GameThreadUpdate(getHolder(), this);
+        pictureProcessor = new PictureProcessor(getPicture());
+        pictureProcessor.setListener(this);
         setFocusable(true);
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
+    public void setPicture(Bitmap picture) {
+        this.picture = picture;
+    }
 
+    public Bitmap getPicture() {
+        return picture;
+    }
+
+    public Bitmap getScaledPicture() {
+        return Bitmap.createScaledBitmap(picture, getWidth(), getHeight(), false);
+    }
+
+    @Override
+    public void onProcessingUpdate(Bitmap imgProcessed) {
+        setPicture(imgProcessed);
+    }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         threadDraw.setRunning(true);
         threadUpdate.setRunning(true);
+        pictureProcessor.setRunning(true);
         threadDraw.start();
         threadUpdate.start();
-        Bitmap test_image = BitmapFactory.decodeResource(getResources(), R.drawable.test_image);
-        test_image = Bitmap.createScaledBitmap(test_image, getWidth(), getHeight(), false);
-        Handler handler = new Handler();
-        pictureProcessor = new PictureProcessor(test_image, handler);
-        pictureProcessor.setDelay(500);
-        pictureProcessor.setListener(this);
-        pictureProcessor.setRunning(true);
-        handler.postDelayed(pictureProcessor, 0);
-
-
+        pictureProcessor.start();
     }
 
     @Override
@@ -71,13 +81,14 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Pic
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         boolean retry = true;
-        pictureProcessor.setRunning(false);
         while (retry) {
             try {
                 threadUpdate.setRunning(false);
                 threadUpdate.join();
                 threadDraw.setRunning(false);
                 threadDraw.join();
+                pictureProcessor.setRunning(false);
+                pictureProcessor.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -91,8 +102,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Pic
         super.draw(canvas);
         if (canvas != null) {
             canvas.drawColor(Color.WHITE);
-            if (drawImg) {
-                canvas.drawBitmap(img, 0, 0, null);
+            if (picture != null) {
+                canvas.drawBitmap(getScaledPicture(), 0, 0, null);
             }
             Paint paint = new Paint();
             paint.setColor(Color.rgb(250, 0, 0));
@@ -119,11 +130,5 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Pic
             directionX = -1;
             //partir à gauche
         }
-    }
-
-    @Override
-    public void onProcessingUpdate(Bitmap imgProccessed) {
-        img =  Bitmap.createScaledBitmap(imgProccessed, getWidth(), getHeight(), false);
-        drawImg = true;
     }
 }
