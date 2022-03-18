@@ -7,7 +7,6 @@ import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.os.Handler;
-import android.view.SurfaceHolder;
 
 public class PictureProcessor extends Thread {
 
@@ -35,7 +34,7 @@ public class PictureProcessor extends Thread {
 
    @Override
    public void run() {
-      listener.onProcessingUpdate(processImg());
+      listener.imageProcessed(processImg());
       if (running) {
          handler.postDelayed(this, PROCESSING_DELAY);
       }

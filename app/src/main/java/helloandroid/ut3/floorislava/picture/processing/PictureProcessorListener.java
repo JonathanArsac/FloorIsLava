@@ -4,5 +4,5 @@ import android.graphics.Bitmap;
 
 public interface PictureProcessorListener {
 
- void onProcessingUpdate(Bitmap imgProcessed);
+ void imageProcessed(Bitmap imgProcessed);
 }

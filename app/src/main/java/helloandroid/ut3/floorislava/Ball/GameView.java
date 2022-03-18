@@ -59,7 +59,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Pic
     }
 
     @Override
-    public void onProcessingUpdate(Bitmap imgProcessed) {
+    public void imageProcessed(Bitmap imgProcessed) {
         setPicture(imgProcessed);
     }
 
