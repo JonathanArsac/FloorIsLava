@@ -37,7 +37,6 @@ public class SplashActivity extends Activity {
         anim.setDuration(700);
         final ImageView splash = (ImageView) findViewById(R.id.volcan_image);
         splash.startAnimation(anim);
-        //splash.setAnimation(null);
 
         final MediaPlayer player = MediaPlayer.create(SplashActivity.this, R.raw.lava_sound);
         player.start();
@@ -47,6 +46,7 @@ public class SplashActivity extends Activity {
             public void run() {
                 Intent intent = new Intent(SplashActivity.this, MainActivity.class);
                 startActivity(intent);
+                player.stop();
                 finish();
             }
         }, SPLASH_SCREEN);
