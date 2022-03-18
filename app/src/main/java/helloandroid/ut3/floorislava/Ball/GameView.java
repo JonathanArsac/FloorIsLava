@@ -5,23 +5,23 @@ import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
 public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     private GameThreadDraw threadDraw;
     private GameThreadUpdate threadUpdate;
-    private int directionX = 1;
-    private float x_balle = this.getResources().getDisplayMetrics().widthPixels / 2f;
-    private float y_balle = this.getResources().getDisplayMetrics().heightPixels / 2f;
-    private int radius_balle = 30;
-    private float vitesse_balle = 1;
-
-    SharedPreferences preferences;
+    private Ball balle;
+    private BallMovement balleMovement;
+    private SensorManager sensorManager;
 
 
     public GameView(Context context) {
@@ -30,8 +30,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         threadDraw = new GameThreadDraw(getHolder(), this);
         threadUpdate = new GameThreadUpdate(getHolder(), this);
         setFocusable(true);
-        preferences = PreferenceManager.getDefaultSharedPreferences(context);
-
 
     }
 
@@ -39,9 +37,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     public void surfaceCreated(SurfaceHolder holder) {
         threadDraw.setRunning(true);
         threadUpdate.setRunning(true);
+        balle = new Ball(1250, 1250, 20);
+        balleMovement = new BallMovement(this.getResources().getDisplayMetrics().heightPixels, this.getResources().getDisplayMetrics().widthPixels,getContext(), SensorManager.SENSOR_DELAY_NORMAL, balle);
+        registerSpeedController();
         threadDraw.start();
         threadUpdate.start();
-
 
     }
 
@@ -74,28 +74,47 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             canvas.drawColor(Color.WHITE);
             Paint paint = new Paint();
             paint.setColor(Color.rgb(250, 0, 0));
-            canvas.drawCircle(x_balle, y_balle, radius_balle, paint);
+            balle.draw(canvas, paint);
         }
     }
 
     public void update() {
-        this.vitesse_balle = this.vitesse_balle + 0.1f;
-        this.x_balle = (this.x_balle + (this.directionX * vitesse_balle));
-        if ((x_balle >= this.getResources().getDisplayMetrics().widthPixels) || (x_balle <= 0)) {
-            //this.threadDraw.setRunning(false);
-            //this.threadUpdate.setRunning(false);
 
-        }
+        if (balle.getX() < 0)
+            balle.setX(0);
+        else if (balle.getX() > this.getResources().getDisplayMetrics().widthPixels)
+            balle.setX(this.getResources().getDisplayMetrics().widthPixels);
+        if (balle.getY() < 0)
+            balle.setY(0);
+        else if (balle.getY() > this.getResources().getDisplayMetrics().heightPixels)
+            balle.setY(this.getResources().getDisplayMetrics().heightPixels);
+
+        if (balle.getDirectionX() == Direction.HAUT)
+            balle.setX(balle.getX() + balle.getSpeedX());
+        else if((balle.getDirectionX() == Direction.BAS))
+            balle.setX(balle.getX() - balle.getSpeedX());
+        if (balle.getDirectionY() == Direction.GAUCHE)
+            balle.setY(balle.getY() - balle.getSpeedY());
+        else if( balle.getDirectionY() == Direction.DROITE)
+            balle.setY(balle.getY() + balle.getSpeedY());
+
+
     }
 
 
-    public void setDirection(float posX, float posY) {
-        if (this.x_balle > posX) {
-            directionX = 1;
-            // partir à droite
-        } else {
-            directionX = -1;
-            //partir à gauche
-        }
+    private void registerSpeedController() {
+        Sensor accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        sensorManager.registerListener(balleMovement, accelSensor, SensorManager.SENSOR_DELAY_GAME);
+        if (balleMovement != null)
+            balleMovement.enable();
+    }
+
+    public void setSensorManager(SensorManager sensorManager) {
+        this.sensorManager = sensorManager;
+    }
+
+    public void onStop() {
+        sensorManager.unregisterListener(balleMovement);
+        balleMovement.disable();
     }
 }
