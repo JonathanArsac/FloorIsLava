@@ -7,15 +7,16 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 
 import androidx.annotation.NonNull;
-import helloandroid.ut3.floorislava.R;
 import helloandroid.ut3.floorislava.picture.processing.PictureProcessor;
 import helloandroid.ut3.floorislava.picture.processing.PictureProcessorListener;
 
-public class GameView extends SurfaceView implements SurfaceHolder.Callback, PictureProcessorListener {
+public class GameView extends SurfaceView implements SurfaceHolder.Callback, PictureProcessorListener, View.OnTouchListener {
     private GameThreadDraw threadDraw;
     private GameThreadUpdate threadUpdate;
     private SensorManager sensorManager;
@@ -38,7 +39,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Pic
         pictureProcessor = new PictureProcessor(getPicture());
         pictureProcessor.setListener(this);
         setFocusable(true);
-
+        this.setOnTouchListener(this);
         timer = new Timer();
         ball = new Ball(Color.BLUE);
         ballSpeedController = new AcceloSpeedController(getContext(), ball);
@@ -67,14 +68,15 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Pic
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+        ball.setX(getWidth()/2);
+        ball.setY(getHeight()/2);
+        ball.setInitialRadius(getWidth()*0.019f);
         threadDraw.setRunning(true);
         threadUpdate.setRunning(true);
         pictureProcessor.setRunning(true);
         threadDraw.start();
         threadUpdate.start();
         pictureProcessor.start();
-        ball.setX(getWidth()/2);
-        ball.setY(getHeight()/2);
     }
 
     @Override
@@ -117,9 +119,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Pic
     public void update() {
         ball.update(getWidth(), getHeight());
         timer.update();
-        if (isBallInLava()) {
+        if (!ball.isJumping() && isBallInLava()) {
             System.out.println("The floor is lava");
         }
+
     }
 
     private boolean isBallInLava() {
@@ -149,5 +152,13 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Pic
 
     public void onStop() {
         sensorManager.unregisterListener(ballSpeedController);
+    }
+
+    @Override
+    public boolean onTouch(View view, MotionEvent motionEvent) {
+        if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+            ball.setJumping(true);
+        }
+        return true;
     }
 }

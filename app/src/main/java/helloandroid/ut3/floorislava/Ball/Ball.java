@@ -1,6 +1,7 @@
 package helloandroid.ut3.floorislava.Ball;
 
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -8,11 +9,23 @@ import android.graphics.RectF;
 public class Ball implements Movable {
 
    private float x, y, speedX, speedY;
-   private float radius;
+   private float radius, initialRadius;
    private int color;
+   private boolean isJumping;
+
+   private int currentStep = 0;
+   private final static int LAST_STEP = 45;
 
    Ball(int color) {
       this.color = color;
+   }
+
+   public void setJumping(boolean jumping) {
+      isJumping = jumping;
+   }
+
+   public boolean isJumping() {
+      return isJumping;
    }
 
    public void setX(int x) {
@@ -21,6 +34,15 @@ public class Ball implements Movable {
 
    public void setY(int y) {
       this.y = y;
+   }
+
+   public void setRadius(float radius) {
+      this.radius = radius;
+   }
+
+   public void setInitialRadius(float initialRadius) {
+      this.initialRadius = initialRadius;
+      setRadius(initialRadius);
    }
 
    @Override
@@ -34,7 +56,6 @@ public class Ball implements Movable {
    }
 
    public void update(int width, int height) {
-      radius = width*0.019f;
       x += speedX;
       y += speedY;
 
@@ -49,6 +70,31 @@ public class Ball implements Movable {
          y = height - radius;
       }
 
+      if (isJumping) {
+         jumpAnimation();
+         color = Color.CYAN;
+      } else {
+         color = Color.BLUE;
+         currentStep = 0;
+      }
+   }
+
+   private void jumpAnimation() {
+      if (currentStep <= LAST_STEP) {
+         float piDiv2 = (float) Math.PI / 2;
+         float rad = mapTo(currentStep, 0, LAST_STEP, -piDiv2, piDiv2);
+         float factor = (float) Math.cos(rad);
+         float toAdd = initialRadius * factor;
+         setRadius(initialRadius + toAdd);
+      }
+      if (currentStep >= LAST_STEP) {
+         setJumping(false);
+      }
+      currentStep++;
+   }
+
+   private float mapTo(float input, float input_start, float input_end, float output_start, float output_end) {
+      return output_start + ((output_end - output_start) / (input_end - input_start)) * (input - input_start);
    }
 
    public Rect getHitbox() {
