@@ -11,6 +11,7 @@
         android:theme="@style/Theme.FloorIsLava">
         <activity
             android:name=".Ball.BallActivity"
+            android:screenOrientation="landscape"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -17,7 +17,7 @@ import android.view.WindowManager;
 
 import helloandroid.ut3.floorislava.R;
 
-public class BallActivity extends Activity implements View.OnTouchListener, SensorEventListener {
+public class  BallActivity extends Activity implements View.OnTouchListener, SensorEventListener {
     private GameView gameView;
     private SensorManager sm = null;
 
