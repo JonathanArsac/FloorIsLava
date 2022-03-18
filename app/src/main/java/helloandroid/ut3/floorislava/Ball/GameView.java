@@ -4,10 +4,12 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import helloandroid.ut3.floorislava.picture.processing.PictureProcessor;
@@ -69,6 +71,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Pic
         threadDraw.start();
         threadUpdate.start();
         pictureProcessor.start();
+        ball.setX(getWidth()/2);
+        ball.setY(getHeight()/2);
     }
 
     @Override
@@ -109,6 +113,33 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Pic
 
     public void update() {
         ball.update(getWidth(), getHeight());
+        if (isBallInLava()) {
+            System.out.println("The floor is lava");
+        }
+    }
+
+    private boolean isBallInLava() {
+        Rect ballHitbox = ball.getHitbox();
+        Bitmap pixelIntersectingBall = Bitmap.createBitmap(getScaledPicture(), ballHitbox.left, ballHitbox.top, ballHitbox.width(), ballHitbox.height());
+
+        for (int x = 0; x < pixelIntersectingBall.getWidth(); x++) {
+            for (int y = 0; y < pixelIntersectingBall.getHeight(); y++) {
+//                if (!isPointInBall(ballHitbox.left+x, ballHitbox.right+y))
+//                    continue;
+                int pixel = pixelIntersectingBall.getPixel(x, y);
+                if (pixel == Color.RED) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isPointInBall(float x, float y) {
+        float dx = x-ball.getX();
+        float dy = y-ball.getY();
+
+        return dx*dx + dy*dy <= ball.getRadius()*ball.getRadius();
     }
 
 

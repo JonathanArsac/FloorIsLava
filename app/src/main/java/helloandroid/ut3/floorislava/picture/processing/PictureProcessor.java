@@ -19,6 +19,8 @@ public class PictureProcessor extends Thread {
    private final Handler handler = new Handler();
    private PictureProcessorListener listener;
 
+   private boolean firstExec = true;
+
    public PictureProcessor(Bitmap picture) {
       this.picture = picture;
       grayPicture = toGrayscale(picture);
@@ -34,9 +36,11 @@ public class PictureProcessor extends Thread {
 
    @Override
    public void run() {
-      listener.imageProcessed(processImg());
+      if (!firstExec)
+         listener.imageProcessed(processImg());
       if (running) {
          handler.postDelayed(this, PROCESSING_DELAY);
+         firstExec = false;
       }
    }
 
