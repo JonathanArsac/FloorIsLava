@@ -1,33 +1,25 @@
 package helloandroid.ut3.floorislava.Ball;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.os.Handler;
-import android.preference.PreferenceManager;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import androidx.annotation.NonNull;
-import helloandroid.ut3.floorislava.R;
 import helloandroid.ut3.floorislava.picture.processing.PictureProcessor;
 import helloandroid.ut3.floorislava.picture.processing.PictureProcessorListener;
 
 public class GameView extends SurfaceView implements SurfaceHolder.Callback, PictureProcessorListener {
     private GameThreadDraw threadDraw;
     private GameThreadUpdate threadUpdate;
-    private int directionX = 1;
-    private float x_balle = this.getResources().getDisplayMetrics().widthPixels / 2f;
-    private float y_balle = this.getResources().getDisplayMetrics().heightPixels / 2f;
-    private int radius_balle = 30;
-    private float vitesse_balle = 1;
-    private boolean drawImg = false;
+    private SensorManager sensorManager;
 
-    SharedPreferences preferences;
+    private Ball ball;
+    private AcceloSpeedController ballSpeedController;
 
     private PictureProcessor pictureProcessor;
 
@@ -43,7 +35,13 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Pic
         pictureProcessor = new PictureProcessor(getPicture());
         pictureProcessor.setListener(this);
         setFocusable(true);
-        preferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+        ball = new Ball(Color.BLUE);
+        ballSpeedController = new AcceloSpeedController(getContext(), ball);
+    }
+
+    public void setSensorManager(SensorManager sensorManager) {
+        this.sensorManager = sensorManager;
     }
 
     public void setPicture(Bitmap picture) {
@@ -105,30 +103,25 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Pic
             if (picture != null) {
                 canvas.drawBitmap(getScaledPicture(), 0, 0, null);
             }
-            Paint paint = new Paint();
-            paint.setColor(Color.rgb(250, 0, 0));
-            canvas.drawCircle(x_balle, y_balle, radius_balle, paint);
+            ball.draw(canvas);
         }
     }
 
     public void update() {
-        this.vitesse_balle = this.vitesse_balle + 0.1f;
-        this.x_balle = (this.x_balle + (this.directionX * vitesse_balle));
-        if ((x_balle >= this.getResources().getDisplayMetrics().widthPixels) || (x_balle <= 0)) {
-            //this.threadDraw.setRunning(false);
-            //this.threadUpdate.setRunning(false);
-
-        }
+        ball.update(getWidth(), getHeight());
     }
 
 
-    public void setDirection(float posX, float posY) {
-        if (this.x_balle > posX) {
-            directionX = 1;
-            // partir à droite
-        } else {
-            directionX = -1;
-            //partir à gauche
-        }
+    private void registerSpeedController() {
+        Sensor accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        sensorManager.registerListener(ballSpeedController, accelSensor, SensorManager.SENSOR_DELAY_GAME);
+    }
+
+    public void onResume() {
+        registerSpeedController();
+    }
+
+    public void onStop() {
+        sensorManager.unregisterListener(ballSpeedController);
     }
 }

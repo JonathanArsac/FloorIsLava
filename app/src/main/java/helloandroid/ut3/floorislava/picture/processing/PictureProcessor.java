@@ -11,7 +11,7 @@ import android.os.Handler;
 public class PictureProcessor extends Thread {
 
    private static final int LAVA_THRESHOLD = 100;
-   private static final int PROCESSING_DELAY = 500;
+   private static final int PROCESSING_DELAY = 800;
    private final Bitmap picture;
    private final Bitmap grayPicture;
    private int nbProcess;
@@ -76,7 +76,7 @@ public class PictureProcessor extends Thread {
    }
 
    private int calculateLavaThreshold() {
-      return LAVA_THRESHOLD + (nbProcess*5);
+      return LAVA_THRESHOLD + (nbProcess*10);
    }
 
 }
