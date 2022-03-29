@@ -6,6 +6,8 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 
+import java.util.List;
+
 public class Ball implements Movable {
 
    private float x, y, speedX, speedY;
@@ -15,6 +17,9 @@ public class Ball implements Movable {
 
    private int currentStep = 0;
    private final static int LAST_STEP = 45;
+
+
+   private List<float[]> trail = new TrailQueue<>(10);
 
    Ball(int color) {
       this.color = color;
@@ -77,6 +82,15 @@ public class Ball implements Movable {
          color = Color.BLUE;
          currentStep = 0;
       }
+
+      updateTrail();
+   }
+
+   private boolean updateTrail = false;
+   private void updateTrail() {
+      updateTrail = !updateTrail;
+      if (updateTrail)
+         trail.add(new float[]{getX(), getY(), getRadius()});
    }
 
    private void jumpAnimation() {
@@ -119,7 +133,22 @@ public class Ball implements Movable {
    public void draw(Canvas canvas) {
       Paint paint = new Paint();
       paint.setColor(color);
+      drawTrail(canvas);
       canvas.drawCircle(x, y, radius, paint);
+   }
 
+   private void drawTrail(Canvas canvas) {
+      float dirX = speedX == 0 ? 1 : Math.signum(speedX);
+      float dirY = speedY == 0 ? 1 : Math.signum(speedY);
+      for (int trailSize = trail.size(), i = trailSize - 1; i >= 0; i--) {
+         float[] t = trail.get(i);
+         Paint paint = new Paint();
+         int red = Color.red(color);
+         int blue = Color.blue(color);
+         int green = Color.green(color);
+         int alpha = Math.round(mapTo(i, 0, trailSize, 0, 255f/2f));
+         paint.setColor(Color.argb(alpha, red, green, blue));
+         canvas.drawCircle(t[0], t[1], t[2], paint);
+      }
    }
 }
